@@ -2,7 +2,7 @@ export type JarvisState = 'idle' | 'acknowledging' | 'processing' | 'admin-auth'
 
 export type JarvisMessageRole = 'user' | 'jarvis';
 
-export type JarvisMode = 'conversation' | 'deterministic' | 'admin';
+export type JarvisMode = 'conversation' | 'deterministic' | 'admin' | 'profile';
 
 export type JarvisModule =
   | 'agent'
@@ -10,12 +10,34 @@ export type JarvisModule =
   | 'systems'
   | 'forge'
   | 'kmOne'
+  | 'flow'
   | 'automation'
   | 'blog'
+  | 'creator'
   | 'contact'
   | 'admin';
 
 export type JarvisInteractionType = 'message' | 'module' | 'admin';
+
+export interface JarvisProfileLink {
+  label: string;
+  url: string;
+  kind: 'github' | 'linkedin' | 'cv' | 'external';
+}
+
+export interface JarvisProfile {
+  name: string;
+  role: string;
+  photoUrl: string;
+  description: string;
+  links: JarvisProfileLink[];
+}
+
+export interface JarvisMessageAction {
+  label: string;
+  url: string;
+  kind: 'whatsapp' | 'external' | 'download';
+}
 
 export interface JarvisMessage {
   id: string;
@@ -23,6 +45,8 @@ export interface JarvisMessage {
   mode: JarvisMode;
   title?: string;
   content: string;
+  profile?: JarvisProfile;
+  actions?: JarvisMessageAction[];
   createdAt: Date;
 }
 
@@ -54,4 +78,6 @@ export interface JarvisInteraction {
   ack: string;
   title: string;
   content: string;
+  profile?: JarvisProfile;
+  actions?: JarvisMessageAction[];
 }

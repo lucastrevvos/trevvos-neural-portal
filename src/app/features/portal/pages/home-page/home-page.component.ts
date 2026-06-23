@@ -1,5 +1,6 @@
-import { Component, computed, ElementRef, signal, ViewChild } from '@angular/core';
+import { Component, computed, ElementRef, signal, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Title } from '@angular/platform-browser';
 import {
   JarvisMessage,
   JarvisModule,
@@ -19,6 +20,8 @@ export class HomePageComponent {
   @ViewChild('chatScroll')
   private chatScroll?: ElementRef<HTMLElement>;
 
+  private readonly browserTitle = inject(Title);
+
   question = '';
 
   state = signal<JarvisState>('idle');
@@ -33,12 +36,13 @@ export class HomePageComponent {
       mode: 'conversation',
       title: 'Agente Trevvos online',
       content:
-        'Pode me perguntar qualquer coisa — sobre soluções, produtos, automação, IA aplicada, Trevvos Forge, KM One ou sistemas sob medida.',
+        'Pode me perguntar qualquer coisa — sobre soluções, produtos, automação, IA aplicada, Trevvos Forge, Trevvos Flow, KM One ou sistemas sob medida.',
       createdAt: new Date(),
     },
   ]);
 
   productLinks = signal<JarvisProductLink[]>([]);
+  humanWhatsAppUrl = '';
 
   isAdminModalOpen = signal(false);
   selectedMessage = signal<JarvisMessage | null>(null);
@@ -64,11 +68,17 @@ export class HomePageComponent {
       return 'Admin';
     }
 
+    if (lastMessage?.mode === 'profile') {
+      return 'Perfil';
+    }
+
     return 'Conversa';
   });
 
   constructor(private readonly jarvisMockService: JarvisMockService) {
     this.productLinks.set(this.jarvisMockService.getProductLinks());
+    this.humanWhatsAppUrl = this.jarvisMockService.getHumanWhatsAppUrl();
+    this.browserTitle.setTitle('Trevvos Neural Console | Trevvos Soluções em IA');
   }
 
   submitQuestion(): void {
@@ -98,6 +108,16 @@ export class HomePageComponent {
 
     if (module === 'admin') {
       this.runPrompt('Trevvos modo admin');
+      return;
+    }
+
+    if (module === 'creator') {
+      this.runPrompt('Conheça o criador Lucas Amaral');
+      return;
+    }
+
+    if (module === 'contact') {
+      this.runPrompt('Quero falar com um humano');
       return;
     }
 
@@ -140,7 +160,7 @@ export class HomePageComponent {
         mode: 'conversation',
         title: 'Agente Trevvos online',
         content:
-          'Sessão reiniciada. Pode me perguntar sobre soluções, produtos, IA aplicada, automações ou sistemas sob medida.',
+          'Sessão reiniciada. Pode me perguntar sobre soluções, produtos, IA aplicada, automações, Trevvos Flow ou sistemas sob medida.',
         createdAt: new Date(),
       },
     ]);
@@ -190,6 +210,8 @@ export class HomePageComponent {
           mode: interaction.mode,
           title: interaction.title,
           content: interaction.content,
+          profile: interaction.profile,
+          actions: interaction.actions,
         });
 
         this.currentAck.set('');

@@ -10,13 +10,13 @@
 
   <header class="topbar">
     <div class="logo-wrap">
-      <div class="logo-mark">
-        <span>✦</span>
+      <div class="logo-image-frame">
+        <img src="assets/images/trevvos-logo.png" alt="Trevvos Soluções em IA" />
       </div>
 
       <div class="brand">
-        <div class="brand-name">trevvos</div>
-        <div class="brand-tag">inteligência artificial</div>
+        <div class="brand-name">Trevvos</div>
+        <div class="brand-tag">Soluções em IA</div>
       </div>
     </div>
 
@@ -24,13 +24,9 @@
       <span class="badge b-green">Sistema online</span>
       <span class="badge b-purple">IA mockada</span>
 
-      <button
-        type="button"
-        class="badge b-link"
-        (click)="usePrompt('Quero falar sobre um projeto com a Trevvos')"
-      >
-        Falar sobre projeto ↗
-      </button>
+      <a class="badge b-link" [href]="humanWhatsAppUrl" target="_blank" rel="noopener noreferrer">
+        Falar com um humano ↗
+      </a>
     </div>
   </header>
 
@@ -75,9 +71,55 @@
         (click)="setModule('forge')"
       >
         <span>⌘</span>
-        Dev Library
-        <span class="new-badge">novo</span>
+        Trevvos Forge
+        <span class="new-badge">super</span>
       </button>
+
+      <button
+        type="button"
+        class="navbtn"
+        [class.active]="activeModule() === 'flow'"
+        (click)="setModule('flow')"
+      >
+        <span>☑</span>
+        Trevvos Flow
+        <span class="new-badge">play</span>
+      </button>
+
+      <button
+        type="button"
+        class="navbtn"
+        [class.active]="activeModule() === 'kmOne'"
+        (click)="setModule('kmOne')"
+      >
+        <span>▣</span>
+        KM One
+        <span class="new-badge">testes</span>
+      </button>
+
+      <div class="divider"></div>
+
+      <div class="nav-section">Comunidade</div>
+
+      <a
+        class="navbtn"
+        href="https://chat.whatsapp.com/K1cepLtEEoY6pScVRTNvg9"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <span>💬</span>
+        Grupo de testadores
+      </a>
+
+      <a
+        class="navbtn"
+        href="https://open.spotify.com/show/7xvDpbP6wuoZi8coSgTFkY"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <span>▶</span>
+        Podcast
+      </a>
 
       <div class="divider"></div>
 
@@ -106,21 +148,21 @@
       <button
         type="button"
         class="navbtn"
-        [class.active]="activeModule() === 'contact'"
-        (click)="setModule('contact')"
+        [class.active]="activeModule() === 'creator'"
+        (click)="setModule('creator')"
       >
-        <span>✉</span>
-        Contato
+        <span>◉</span>
+        Criador
       </button>
 
       <button
         type="button"
         class="navbtn"
-        [class.active]="activeModule() === 'admin'"
-        (click)="setModule('admin')"
+        [class.active]="activeModule() === 'contact'"
+        (click)="setModule('contact')"
       >
-        <span>⚿</span>
-        Admin
+        <span>✉</span>
+        Contato humano
       </button>
     </aside>
 
@@ -174,13 +216,16 @@
                   [class.conv]="message.mode === 'conversation'"
                   [class.det]="message.mode === 'deterministic'"
                   [class.admin]="message.mode === 'admin'"
+                  [class.profile]="message.mode === 'profile'"
                 >
                   {{
                     message.mode === 'deterministic'
                       ? 'fluxo automático'
                       : message.mode === 'admin'
                         ? 'admin'
-                        : 'conversa livre'
+                        : message.mode === 'profile'
+                          ? 'perfil'
+                          : 'conversa livre'
                   }}
                 </div>
               }
@@ -195,6 +240,50 @@
                 }
 
                 <p>{{ message.content }}</p>
+
+                @if (message.profile) {
+                  <section class="profile-card">
+                    <img
+                      class="profile-photo"
+                      [src]="message.profile.photoUrl"
+                      [alt]="message.profile.name"
+                    />
+
+                    <div class="profile-info">
+                      <h3>{{ message.profile.name }}</h3>
+                      <span>{{ message.profile.role }}</span>
+                      <p>{{ message.profile.description }}</p>
+
+                      <div class="profile-actions">
+                        @for (link of message.profile.links; track link.label) {
+                          <a
+                            [href]="link.url"
+                            [attr.download]="link.kind === 'cv' ? '' : null"
+                            [attr.target]="link.kind === 'cv' ? null : '_blank'"
+                            rel="noopener noreferrer"
+                          >
+                            {{ link.label }}
+                          </a>
+                        }
+                      </div>
+                    </div>
+                  </section>
+                }
+
+                @if (message.actions?.length) {
+                  <div class="profile-actions">
+                    @for (action of message.actions; track action.label) {
+                      <a
+                        [href]="action.url"
+                        [attr.target]="action.kind === 'download' ? null : '_blank'"
+                        [attr.download]="action.kind === 'download' ? '' : null"
+                        rel="noopener noreferrer"
+                      >
+                        {{ action.label }}
+                      </a>
+                    }
+                  </div>
+                }
 
                 @if (message.content.length > 180) {
                   <button type="button" class="details-link" (click)="openMessageDetails(message)">
@@ -346,6 +435,50 @@
 
           <div class="detail-content">
             <p>{{ selectedMessage()!.content }}</p>
+
+            @if (selectedMessage()!.profile) {
+              <section class="profile-card modal-profile-card">
+                <img
+                  class="profile-photo"
+                  [src]="selectedMessage()!.profile!.photoUrl"
+                  [alt]="selectedMessage()!.profile!.name"
+                />
+
+                <div class="profile-info">
+                  <h3>{{ selectedMessage()!.profile!.name }}</h3>
+                  <span>{{ selectedMessage()!.profile!.role }}</span>
+                  <p>{{ selectedMessage()!.profile!.description }}</p>
+
+                  <div class="profile-actions">
+                    @for (link of selectedMessage()!.profile!.links; track link.label) {
+                      <a
+                        [href]="link.url"
+                        [attr.download]="link.kind === 'cv' ? '' : null"
+                        [attr.target]="link.kind === 'cv' ? null : '_blank'"
+                        rel="noopener noreferrer"
+                      >
+                        {{ link.label }}
+                      </a>
+                    }
+                  </div>
+                </div>
+              </section>
+            }
+
+            @if (selectedMessage()!.actions?.length) {
+              <div class="profile-actions">
+                @for (action of selectedMessage()!.actions; track action.label) {
+                  <a
+                    [href]="action.url"
+                    [attr.target]="action.kind === 'download' ? null : '_blank'"
+                    [attr.download]="action.kind === 'download' ? '' : null"
+                    rel="noopener noreferrer"
+                  >
+                    {{ action.label }}
+                  </a>
+                }
+              </div>
+            }
           </div>
         </div>
       </section>
